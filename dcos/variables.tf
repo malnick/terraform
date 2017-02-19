@@ -52,7 +52,7 @@ variable "os-init-script" {
 
 variable "dcos_download_path" {
  default = "https://downloads.dcos.io/dcos/testing/master/dcos_generate_config.sh"
- description = "DC/OS Version Master Branch"
+ description = "DC/OS version path"
 }
 
 # Core OS
