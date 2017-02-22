@@ -425,8 +425,8 @@ resource "aws_instance" "master" {
 
   # OS init script
   provisioner "file" {
-   source = "${var.os-init-script["coreos"]}"
-   destination = "/tmp/coreos-provision.sh"
+   source = "${var.os-init-script["centos"]}"
+   destination = "/tmp/provision.sh"
    }
 
   # We run a remote provisioner on the instance after creating it.
@@ -434,8 +434,8 @@ resource "aws_instance" "master" {
   # this should be on port 80
     provisioner "remote-exec" {
     inline = [
-      "sudo chmod +x /tmp/coreos-provision.sh",
-      "sudo bash /tmp/coreos-provision.sh",
+      "sudo chmod +x /tmp/provision.sh",
+      "sudo bash /tmp/provision.sh",
     ]
   }
 }
@@ -475,7 +475,7 @@ resource "aws_instance" "agent" {
 
   # OS init script
   provisioner "file" {
-   source = "${var.os-init-script["coreos"]}"
+   source = "${var.os-init-script["centos"]}"
    destination = "/tmp/coreos-provision.sh"
    }
  
@@ -531,7 +531,7 @@ resource "aws_instance" "bootstrap" {
 
   # OS init script
   provisioner "file" {
-   source = "${var.os-init-script["coreos"]}"
+   source = "${var.os-init-script["centos"]}"
    destination = "/tmp/coreos-provision.sh"
    }
 

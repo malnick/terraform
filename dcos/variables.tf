@@ -5,7 +5,7 @@ variable "key_name" {
 
 variable "user" {
   description = "Username of the OS"
-  default = "core"
+  default = "centos"
 }
 
 variable "aws_region" {
@@ -46,7 +46,8 @@ variable "os-init-script" {
  type = "map"
 
  default = {
- coreos = "scripts/os/coreos/coreos-init.aws.sh"
+ core = "scripts/os/coreos/coreos-init.aws.sh"
+ centos = "scripts/os/centos/centos-init.aws.sh"
  }
 }
 
@@ -61,6 +62,6 @@ variable "aws_amis" {
     eu-west-1 = "ami-b1cf19c6"
     us-east-1 = "ami-de7ab6b6"
     us-west-1 = "ami-3f75767a"
-    us-west-2 = "ami-004baa33"
+    us-west-2 = "ami-d2c924b2"
   }
 }
