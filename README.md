@@ -49,6 +49,24 @@ terraform apply -var 'num_of_masters=1' -var 'num_of_private_agents=5'
 terraform destroy
 ```
 
+# Variables
+
+```bash
+variable "key_name" {
+variable "user" {
+variable "aws_region" {
+variable "aws_instance_type" {
+variable "num_of_private_agents" {
+variable "num_of_masters" {
+variable "owner" {
+variable "expiration" {
+variable "ip-detect" {
+variable "os-init-script" {
+variable "instance_disk_size" {
+variable "dcos_download_path" {
+variable "aws_amis" {
+```
+
 # Roadmaps
 
 - [X] Support for AWS
