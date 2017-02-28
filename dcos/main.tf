@@ -3,12 +3,18 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+data "template_file" "cluster-name" {
+ template = "${var.owner}-tf$${uuid}"
+  vars {
+    uuid = "${element(split("-",uuid()), 1)}"
+  }
+}
 # Create a VPC to launch our instances into
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
 
   tags {
-   Name = "${var.owner}-vpc"
+   Name = "${data.template_file.cluster-name.rendered}-vpc"
   } 
 }
 
@@ -276,7 +282,7 @@ resource "aws_security_group" "private_slave" {
 # Internal Load Balancer Access
 # Mesos Master, Zookeeper, Exhibitor, Adminrouter, Marathon
 resource "aws_elb" "internal-master-elb" {
-  name = "${var.owner}-int-master-elb"
+  name = "${data.template_file.cluster-name.rendered}-int-master-elb"
 
   subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${aws_security_group.master.id}"]
@@ -328,7 +334,7 @@ resource "aws_elb" "internal-master-elb" {
 # Public Master Load Balancer Access
 # Adminrouter Only
 resource "aws_elb" "public-master-elb" {
-  name = "${var.owner}-dcos-public-master-elb"
+  name = "${data.template_file.cluster-name.rendered}-pub-mas-elb"
 
   subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${aws_security_group.public_slave.id}"]
@@ -360,7 +366,7 @@ resource "aws_elb" "public-master-elb" {
 # Public Agent Load Balancer Access
 # Adminrouter Only
 resource "aws_elb" "public-agent-elb" {
-  name = "${var.owner}-dcos-public-agent-elb"
+  name = "${data.template_file.cluster-name.rendered}-pub-agt-elb"
 
   subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${aws_security_group.public_slave.id}"]
@@ -398,6 +404,10 @@ resource "aws_instance" "master" {
 
     # The connection will use the local SSH agent for authentication.
   }
+  
+  root_block_device {
+    volume_size = "${var.instance_disk_size}"
+  }
 
   count = "${var.num_of_masters}"
   instance_type = "${var.aws_instance_type}"
@@ -405,7 +415,7 @@ resource "aws_instance" "master" {
   tags {
    owner = "${var.owner}"
    expiration = "${var.expiration}"
-   Name = "${var.owner}-master-${count.index + 1}"
+   Name = "${data.template_file.cluster-name.rendered}-master-${count.index + 1}"
   }
 
   # Lookup the correct AMI based on the region
@@ -450,13 +460,17 @@ resource "aws_instance" "agent" {
     # The connection will use the local SSH agent for authentication.
   }
 
+  root_block_device {
+    volume_size = "${var.instance_disk_size}"
+  }
+
   count = "${var.num_of_private_agents}"
   instance_type = "${var.aws_instance_type}"
 
   tags {
    owner = "${var.owner}"
    expiration = "${var.expiration}"
-   Name =  "${var.owner}-agent-${count.index + 1}"
+   Name =  "${data.template_file.cluster-name.rendered}-pvtagt-${count.index + 1}"
   }
   # Lookup the correct AMI based on the region
   # we specified
@@ -500,12 +514,16 @@ resource "aws_instance" "bootstrap" {
     # The connection will use the local SSH agent for authentication.
   }
 
+  root_block_device {
+    volume_size = "${var.instance_disk_size}"
+  }
+
   instance_type = "${var.aws_instance_type}"
 
   tags {
    owner = "${var.owner}"
    expiration = "${var.expiration}"
-   Name = "${var.owner}-bootstrap"
+   Name = "${data.template_file.cluster-name.rendered}-bootstrap"
   }
 
   # Lookup the correct AMI based on the region
@@ -566,7 +584,7 @@ resource "null_resource" "bootstrap" {
     inline = [
       "curl -O ${var.dcos_download_path}",
       "sudo mkdir genconf",
-      "echo -e '''bootstrap_url: http://${aws_instance.bootstrap.private_ip}:80\ncluster_name: ${var.owner}\nexhibitor_storage_backend: static\nmaster_discovery: static\nmaster_list:\n - ${join("\n - ", aws_instance.master.*.private_ip)}\nresolvers: \n - 8.8.8.8\n - 8.8.4.4''' | sudo tee -a genconf/config.yaml",
+      "echo -e '''bootstrap_url: http://${aws_instance.bootstrap.private_ip}:80\ncluster_name: ${data.template_file.cluster-name.rendered}\nexhibitor_storage_backend: static\nmaster_discovery: static\nmaster_list:\n - ${join("\n - ", aws_instance.master.*.private_ip)}\nresolvers: \n - 8.8.8.8\n - 8.8.4.4\nsecurity: disabled''' | sudo tee -a genconf/config.yaml",
       "sudo cp /tmp/ip-detect genconf/.",
       "sudo bash dcos_generate_config.*",
       "sudo docker run -d -p 80:80 -v $PWD/genconf/serve:/usr/share/nginx/html:ro nginx"

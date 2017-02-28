@@ -50,6 +50,11 @@ variable "os-init-script" {
  }
 }
 
+variable "instance_disk_size" {
+ description = "Default size of the root disk (GB)"
+ default = "128"
+}
+
 variable "dcos_download_path" {
  default = "https://downloads.dcos.io/dcos/testing/master/dcos_generate_config.sh"
  description = "DC/OS version path"
@@ -58,9 +63,9 @@ variable "dcos_download_path" {
 # Core OS
 variable "aws_amis" {
   default = {
-    eu-west-1 = "ami-b1cf19c6"
-    us-east-1 = "ami-de7ab6b6"
-    us-west-1 = "ami-3f75767a"
-    us-west-2 = "ami-004baa33"
+    eu-west-1 = "ami-163e7e65"
+    us-east-1 = "ami-21732036"
+    us-west-1 = "ami-161a5176"
+    us-west-2 = "ami-078d5367"
   }
 }
