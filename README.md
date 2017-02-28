@@ -49,7 +49,7 @@ terraform apply -var 'num_of_masters=1' -var 'num_of_private_agents=5'
 terraform destroy
 ```
 
-# DC/OS Version Install
+# DC/OS Versions
 
 ## DC/OS Stable (1.8.8)
 ```bash
@@ -63,7 +63,7 @@ terraform apply -var 'dcos_download_path=https://downloads.dcos.io/dcos/EarlyAcc
 
 ## DC/OS Master (Default)
 ```bash
-terraform apply'
+terraform apply
 ```
 
 # Variables
