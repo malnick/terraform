@@ -16,6 +16,10 @@ resource "aws_vpc" "default" {
   tags {
    Name = "${data.template_file.cluster-name.rendered}-vpc"
   } 
+  
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 
 # Create an internet gateway to give our subnet access to the outside world
@@ -73,7 +77,7 @@ resource "aws_security_group" "elb" {
   description = "A security group for the elb"
   vpc_id      = "${aws_vpc.default.id}"
 
-  # HTTP access from anywhere
+  # http access from anywhere
   ingress {
     from_port   = 80
     to_port     = 80
@@ -104,7 +108,7 @@ resource "aws_security_group" "admin" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # HTTP access from anywhere
+  # http access from anywhere
   ingress {
     from_port   = 80
     to_port     = 80
@@ -112,7 +116,7 @@ resource "aws_security_group" "admin" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # HTTPS access from anywhere
+  # httpS access from anywhere
   ingress {
     from_port   = 443
     to_port     = 443
@@ -291,43 +295,47 @@ resource "aws_elb" "internal-master-elb" {
   listener {
     lb_port	      = 5050
     instance_port     = 5050
-    lb_protocol       = "HTTP"
-    instance_protocol = "HTTP"
+    lb_protocol       = "http"
+    instance_protocol = "http"
   }
 
   listener {
     lb_port           = 2181
     instance_port     = 2181
-    lb_protocol       = "TCP"
-    instance_protocol = "TCP"
+    lb_protocol       = "tcp"
+    instance_protocol = "tcp"
   }
 
   listener {
     lb_port           = 8181
     instance_port     = 8181
-    lb_protocol       = "HTTP"
-    instance_protocol = "HTTP"
+    lb_protocol       = "http"
+    instance_protocol = "http"
   }
   
   listener {
     lb_port           = 80
     instance_port     = 80
-    lb_protocol       = "TCP"
-    instance_protocol = "TCP"
+    lb_protocol       = "tcp"
+    instance_protocol = "tcp"
   }
   
   listener {
     lb_port           = 443
     instance_port     = 443
-    lb_protocol       = "TCP"
-    instance_protocol = "TCP"
+    lb_protocol       = "tcp"
+    instance_protocol = "tcp"
   }
 
   listener {
     lb_port           = 8080
     instance_port     = 8080
-    lb_protocol       = "HTTP"
-    instance_protocol = "HTTP"
+    lb_protocol       = "http"
+    instance_protocol = "http"
+  }
+ 
+  lifecycle {
+    ignore_changes = ["name"]
   }
 }
 
@@ -343,15 +351,15 @@ resource "aws_elb" "public-master-elb" {
   listener {
     lb_port           = 80
     instance_port     = 80
-    lb_protocol       = "TCP"
-    instance_protocol = "TCP"
+    lb_protocol       = "tcp"
+    instance_protocol = "tcp"
   }
 
   listener {
     lb_port           = 443
     instance_port     = 443
-    lb_protocol       = "TCP"
-    instance_protocol = "TCP"
+    lb_protocol       = "tcp"
+    instance_protocol = "tcp"
   }
 
   health_check {
@@ -360,6 +368,10 @@ resource "aws_elb" "public-master-elb" {
     timeout = 5
     target = "TCP:5050"
     interval = 30
+  }
+
+  lifecycle {
+    ignore_changes = ["name"]
   }
 }
 
@@ -375,15 +387,15 @@ resource "aws_elb" "public-agent-elb" {
   listener {
     lb_port           = 80
     instance_port     = 80
-    lb_protocol       = "TCP"
-    instance_protocol = "TCP"
+    lb_protocol       = "tcp"
+    instance_protocol = "tcp"
   }
 
   listener {
     lb_port           = 443
     instance_port     = 443
-    lb_protocol       = "TCP"
-    instance_protocol = "TCP"
+    lb_protocol       = "tcp"
+    instance_protocol = "tcp"
   }
 
   health_check {
@@ -392,6 +404,10 @@ resource "aws_elb" "public-agent-elb" {
     timeout = 2
     target = "HTTP:9090/_haproxy_health_check"
     interval = 5
+  }
+
+  lifecycle {
+    ignore_changes = ["name"]
   }
 }
 
@@ -425,7 +441,7 @@ resource "aws_instance" "master" {
   # The name of our SSH keypair we created above.
   key_name = "default"
 
-  # Our Security group to allow HTTP and SSH access
+  # Our Security group to allow http and SSH access
   vpc_security_group_ids = ["${aws_security_group.master.id}","${aws_security_group.admin.id}","${aws_security_group.any_access_internal.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
@@ -447,6 +463,10 @@ resource "aws_instance" "master" {
       "sudo chmod +x /tmp/coreos-provision.sh",
       "sudo bash /tmp/coreos-provision.sh",
     ]
+  }
+
+  lifecycle {
+    ignore_changes = ["tags"]
   }
 }
 
@@ -479,7 +499,7 @@ resource "aws_instance" "agent" {
   # The name of our SSH keypair we created above.
   key_name = "default"
 
-  # Our Security group to allow HTTP and SSH access
+  # Our Security group to allow http and SSH access
   vpc_security_group_ids = ["${aws_security_group.private_slave.id}","${aws_security_group.admin.id}","${aws_security_group.any_access_internal.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
@@ -501,6 +521,10 @@ resource "aws_instance" "agent" {
       "sudo chmod +x /tmp/coreos-provision.sh",
       "sudo bash /tmp/coreos-provision.sh",
     ]
+  }
+
+  lifecycle {
+    ignore_changes = ["tags"]
   }
 }
 
@@ -533,7 +557,7 @@ resource "aws_instance" "bootstrap" {
   # The name of our SSH keypair we created above.
   key_name = "default"
 
-  # Our Security group to allow HTTP and SSH access
+  # Our Security group to allow http and SSH access
   vpc_security_group_ids = ["${aws_security_group.master.id}","${aws_security_group.admin.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
@@ -562,6 +586,10 @@ resource "aws_instance" "bootstrap" {
       "sudo bash /tmp/coreos-provision.sh", 
     ]
   }
+ 
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 
 resource "null_resource" "bootstrap" {
@@ -589,6 +617,10 @@ resource "null_resource" "bootstrap" {
       "sudo bash dcos_generate_config.*",
       "sudo docker run -d -p 80:80 -v $PWD/genconf/serve:/usr/share/nginx/html:ro nginx"
     ]
+  }
+
+  lifecycle {
+    ignore_changes = ["data.template_file.cluster-name.rendered"]
   }
 }
 

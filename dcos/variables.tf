@@ -23,7 +23,7 @@ variable "num_of_private_agents" {
 }
 
 variable "num_of_masters" {
-  default = 5
+  default = 3
 }
 
 variable "owner" {
