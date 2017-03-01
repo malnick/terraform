@@ -1,5 +1,5 @@
 variable "key_name" {
-  description = "Key Name"
+  description = "Key name assicated with your instances for login"
   default = "default"
 }
 
@@ -19,22 +19,27 @@ variable "aws_instance_type" {
 }
 
 variable "num_of_private_agents" {
+  description = "DC/OS Private Agents Count"
   default = 3
 }
 
 variable "num_of_masters" {
+  description = "DC/OS Master Nodes Count (Odd only)"
   default = 3
 }
 
 variable "owner" {
+  description = "Paired with Cloud Cluster Cleaner will notify on expiration via slack"
   default = "mbernadin"
 }
 
 variable "expiration" {
+  description = "Paired with Cloud Cluster Cleaner will notify on expiration via slack"
   default = "1h"
 }
 
 variable "ip-detect" {
+ description = "Used to determine the private IP address of instances"
  type = "map"
 
  default = {
@@ -43,10 +48,11 @@ variable "ip-detect" {
 }
 
 variable "os-init-script" {
+ description = "Init Scripts that runs post-AMI deployment and pre-DC/OS install" 
  type = "map"
 
  default = {
- coreos = "scripts/os/coreos/coreos-init.aws.sh"
+  coreos = "scripts/os/coreos/coreos-init.aws.sh"
  }
 }
 
@@ -58,6 +64,21 @@ variable "instance_disk_size" {
 variable "dcos_download_path" {
  default = "https://downloads.dcos.io/dcos/testing/master/dcos_generate_config.sh"
  description = "DC/OS version path"
+}
+
+variable "dcos_security" {
+ default = "permissive"
+ description = "DC/OS EE security mode: either disabled, permissive, or strict."
+}
+
+variable "dcos_resolvers" {
+ default = [ "8.8.8.8", "8.8.4.4" ]
+ description = "DNS Resolver for external name resolution"
+}
+
+variable "dcos_oauth_enabled" {
+ default = "true"
+ description = "DC/OS Open Flag for Open Auth"
 }
 
 # Core OS

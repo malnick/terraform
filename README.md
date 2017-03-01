@@ -31,7 +31,7 @@ terraform init github.com/bernadinm/terraform/dcos
 
 ## Deploy Terraform
 
-You can deploy DC/OS with the current defaults which is 3 Masters and 2 private agents via this command running CoreOS
+You can deploy DC/OS with the current defaults which is 3 Masters and 3 private agents via this command running CoreOS
 
 ```bash
 terraform apply
