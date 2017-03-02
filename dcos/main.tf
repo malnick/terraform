@@ -438,7 +438,7 @@ resource "aws_instance" "master" {
   instance_type = "${var.aws_instance_type}"
 
   tags {
-   owner = "${var.owner}"
+   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
    Name = "${data.template_file.cluster-name.rendered}-master-${count.index + 1}"
   }
@@ -497,7 +497,7 @@ resource "aws_instance" "agent" {
   instance_type = "${var.aws_instance_type}"
 
   tags {
-   owner = "${var.owner}"
+   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
    Name =  "${data.template_file.cluster-name.rendered}-pvtagt-${count.index + 1}"
   }
@@ -554,7 +554,7 @@ resource "aws_instance" "bootstrap" {
   instance_type = "${var.aws_instance_type}"
 
   tags {
-   owner = "${var.owner}"
+   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
    Name = "${data.template_file.cluster-name.rendered}-bootstrap"
   }
