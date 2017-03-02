@@ -3,12 +3,21 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+# Allow overrides of the owner variable or default to whoami.sh
 data "template_file" "cluster-name" {
- template = "${var.owner}-tf$${uuid}"
+ template = "$${username}-tf$${uuid}"
+
   vars {
     uuid = "${element(split("-",uuid()), 1)}"
+    username = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
   }
 }
+
+# Runs a local script to return the current user in bash
+data "external" "whoami" {
+  program = ["scripts/local/whoami.sh"]
+}
+
 # Create a VPC to launch our instances into
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
