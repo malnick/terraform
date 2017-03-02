@@ -658,11 +658,6 @@ resource "null_resource" "master" {
 }
 
 resource "null_resource" "agent" {
-  # Changes to any instance of the cluster requires re-provisioning
-  triggers {
-    cluster_instance_ids = "${join(",", aws_instance.agent.*.id)}"
-  }
-
   count = "${var.num_of_private_agents}"
 
   # Bootstrap script can run on any instance of the cluster
