@@ -27,7 +27,7 @@ resource "aws_vpc" "default" {
   } 
   
   lifecycle {
-    ignore_changes = ["tags"]
+    ignore_changes = ["tags.Name"]
   }
 }
 
@@ -475,7 +475,7 @@ resource "aws_instance" "master" {
   }
 
   lifecycle {
-    ignore_changes = ["tags"]
+    ignore_changes = ["tags.Name"]
   }
 }
 
@@ -533,7 +533,7 @@ resource "aws_instance" "agent" {
   }
 
   lifecycle {
-    ignore_changes = ["tags"]
+    ignore_changes = ["tags.Name"]
   }
 }
 
@@ -597,7 +597,7 @@ resource "aws_instance" "bootstrap" {
   }
  
   lifecycle {
-    ignore_changes = ["tags"]
+    ignore_changes = ["tags.Name"]
   }
 }
 
