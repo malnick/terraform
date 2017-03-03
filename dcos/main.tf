@@ -655,6 +655,12 @@ resource "null_resource" "master" {
       "until $(curl --output /dev/null --silent --head --fail http://${element(aws_instance.master.*.public_ip, count.index)}/); do printf 'loading DC/OS...'; sleep 10; done"
     ]
   }
+
+ # Redeploy if bootstrap node gets updates or the node gets lost
+ triggers = {
+   bootstrap_id_changes = "${null_resource.bootstrap.id}"
+   agent_id_changes = "${element(aws_instance.master.*.id, count.index)}"
+  }
 }
 
 resource "null_resource" "agent" {
@@ -677,5 +683,11 @@ resource "null_resource" "agent" {
       "/usr/bin/curl -O ${aws_instance.bootstrap.private_ip}/dcos_install.sh",
       "sudo bash dcos_install.sh slave"
     ]
+  }
+
+ # Redeploy if bootstrap node gets updates or the node gets lost 
+ triggers = {
+   bootstrap_id_changes = "${null_resource.bootstrap.id}"
+   agent_id_changes = "${element(aws_instance.agent.*.id, count.index)}"
   }
 }
