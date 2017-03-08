@@ -28,7 +28,7 @@ resource "aws_vpc" "default" {
   } 
   
   lifecycle {
-    ignore_changes = ["tags.Name"]
+    ignore_changes = ["tags.Name", "tags.cluster"]
   }
 }
 
@@ -295,6 +295,7 @@ resource "aws_security_group" "private_slave" {
 
 # Reattach the internal ELBs to the master if they change
 resource "aws_elb_attachment" "internal-master-elb" {
+  count    = "${var.num_of_masters}"
   elb      = "${aws_elb.internal-master-elb.id}"
   instance = "${element(aws_instance.master.*.id, count.index)}"
 }
@@ -357,6 +358,7 @@ resource "aws_elb" "internal-master-elb" {
 
 # Reattach the public ELBs to the master if they change
 resource "aws_elb_attachment" "public-master-elb" {
+  count    = "${var.num_of_masters}"
   elb      = "${aws_elb.public-master-elb.id}"
   instance = "${element(aws_instance.master.*.id, count.index)}"
 }
@@ -399,6 +401,7 @@ resource "aws_elb" "public-master-elb" {
 
 # Reattach the public ELBs to the agents if they change
 resource "aws_elb_attachment" "public-agent-elb" {
+  count    = "${var.num_of_private_agents}"
   elb      = "${aws_elb.public-agent-elb.id}"
   instance = "${element(aws_instance.agent.*.id, count.index)}"
 }
@@ -626,7 +629,8 @@ resource "aws_instance" "bootstrap" {
 resource "null_resource" "bootstrap" {
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
-    cluster_instance_ids = "${join(",", aws_instance.bootstrap.*.id)}"
+    cluster_instance_ids = "${aws_instance.bootstrap.id}"
+    dcos_version = "${var.dcos_download_path}"
   }
 
   # Bootstrap script can run on any instance of the cluster
@@ -646,6 +650,7 @@ resource "null_resource" "bootstrap" {
       "echo -e '''bootstrap_url: http://${aws_instance.bootstrap.private_ip}:80\ncluster_name: ${data.template_file.cluster-name.rendered}\nexhibitor_storage_backend: static\nmaster_discovery: static\nmaster_list:\n - ${join("\n - ", aws_instance.master.*.private_ip)}\nresolvers:\n - ${join("\n - ", var.dcos_resolvers)}\nsecurity: ${var.dcos_security}\noauth_enabled: ${var.dcos_oauth_enabled}''' | sudo tee -a genconf/config.yaml",
       "sudo cp /tmp/ip-detect genconf/.",
       "sudo bash dcos_generate_config.*",
+      "sudo docker rm -f $(docker ps -a -q -f ancestor=nginx)",
       "sudo docker run -d -p 80:80 -v $PWD/genconf/serve:/usr/share/nginx/html:ro nginx"
     ]
   }
@@ -658,7 +663,8 @@ resource "null_resource" "bootstrap" {
 resource "null_resource" "master" {
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
-    cluster_instance_ids = "${join(",", aws_instance.bootstrap.*.id)}"
+    cluster_instance_ids = "${null_resource.bootstrap.id}"
+    newly_joined_masters = "${element(aws_instance.master.*.id, count.index)}"
   }
 
   # Bootstrap script can run on any instance of the cluster
@@ -687,7 +693,8 @@ resource "null_resource" "master" {
 resource "null_resource" "agent" {
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
-    cluster_instance_ids = "${join(",", aws_instance.bootstrap.*.id)}"
+    cluster_instance_ids = "${null_resource.bootstrap.id}"
+    newly_joined_agent = "${element(aws_instance.agent.*.id, count.index)}"
   }
 
   # Bootstrap script can run on any instance of the cluster
