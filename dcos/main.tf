@@ -633,12 +633,38 @@ resource "null_resource" "bootstrap" {
     dcos_version = "${var.dcos_download_path}"
   }
 
+  module "bootstrap-setup" {
+    source           = "modules/dcos-version/${var.dcos-type}/${var.dcos-version}/dcos-bootstrap"
+    private_ip       = "${aws_instance.bootstrap.private_ip}"
+    cluster_name     = "${data.template_file.cluster-name.rendered}"
+    master_discovery = "${var.dcos_master_discovery}"
+    master_list      = "${aws_instance.master.*.private_ip}"
+    resolvers        = "${var.dcos_resolvers}" 
+    security         = "${var.dcos_security}"
+    oauth_enabled    = "${var.dcos_oauth_enabled}"
+  }
   # Bootstrap script can run on any instance of the cluster
   # So we just choose the first in this case
   connection {
     host = "${element(aws_instance.bootstrap.*.public_ip, 0)}"
     user = "${var.user}"
   }
+
+
+  provisioner "file" {
+    content     = "${data.template_file.master-userdata.rendered}"
+    destination = "/tmp/bootrap.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo echo ${self.private_ip} > /tmp/private_ip",
+      "sudo chmod +x /tmp/master.sh",
+      "sudo /tmp/master.sh",
+    ]
+  }
+
+
 
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
@@ -676,6 +702,7 @@ resource "null_resource" "master" {
 
   count = "${var.num_of_masters}"
 
+
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
   # this should be on port 
@@ -704,7 +731,26 @@ resource "null_resource" "agent" {
     user = "${var.user}"
   }
 
+
+  module "mesos-agent-setup" {
+    source               = "modules/dcos-version/${var.dcos-type}/${var.dcos-version}/dcos-mesos-agent"
+    bootstrap_private_ip = "${aws_instance.bootstrap.private_ip}"
+    dcos_install_mode    = "${var.state}"
+  }
+
   count = "${var.num_of_private_agents}"
+
+  provisioner "file" {
+    content     = "${module.mesos-agent-setup.data.template_file.agent-script.rendered}"
+    destination = "run.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x run.sh",
+      "sudo run.sh",
+    ]
+  }
 
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
