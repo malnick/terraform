@@ -61,9 +61,14 @@ variable "instance_disk_size" {
  default = "128"
 }
 
-variable "dcos_download_path" {
+variable "custom_dcos_bootstrap_port" {
+ default = "80"
+ description = "Nginx Port for serving bootstrap files"
+}
+
+variable "custom_dcos_download_path" {
  default = "https://downloads.dcos.io/dcos/testing/master/dcos_generate_config.sh"
- description = "DC/OS version path"
+ description = "Custom DC/OS version path"
 }
 
 variable "dcos_security" {
@@ -111,7 +116,7 @@ variable "dcos_aws_template_storage_access_key_id" {
  description = "This parameters specifies the AWS Access Key ID"
 }
 
-variable "aws_template_storage_secret_access_key" {
+variable "dcos_aws_template_storage_secret_access_key" {
  default = ""
  description = "This parameter specifies the AWS Secret Access Key"
 }
@@ -211,11 +216,6 @@ variable "dcos_bouncer_expiration_auth_token_days" {
  description = "This parameter sets the auth token time-to-live (TTL) for Identity and Access Management."
 }
 
-variable "dcos_customer_key" {
- default = ""
- description = "This parameter specifies the Enterprise DC/OS customer key."
-}
-
 variable "ssh_port" {
  default = "22"
  description = "This parameter specifies the port to SSH to"
@@ -224,6 +224,11 @@ variable "ssh_port" {
 variable "dcos_superuser_password_hash" {
  default = ""
  description = "This required parameter specifies the hashed superuser password. (EE only)"
+}
+
+variable "dcos_cluster_name" {
+ default = ""
+ description = "Name of the DC/OS Cluster"
 }
 
 variable "dcos_superuser_username" {
@@ -347,13 +352,33 @@ variable "dcos_process_timeout" {
 }
 
 variable "dcos-version" {
- default = "master"
+ default = "1.9.0-rc2"
  description = "DCOS Version"
 }
 
 variable "dcos-type" {
- default = "ee"
+ default = "open"
  description = "DCOS type, either ee or open."
+}
+
+variable "dcos_cluster_docker_credentials" {
+ default = ""
+ description = "This parameter specifies a dictionary of Docker credentials to pass."
+}
+
+variable "dcos_cluster_docker_credentials_dcos_owned" {
+ default = ""
+ description = "This parameter specifies whether to store the credentials file in /opt/mesosphere or /etc/mesosphere/docker_credentials. A sysadmin cannot edit /opt/mesosphere directly."
+}
+
+variable "dcos_cluster_docker_credentials_write_to_etc" {
+ default = ""
+ description = "This parameter specifies whether to write a cluster credentials file."
+}
+
+variable "dcos_cluster_docker_credentials_enabled" {
+ default = ""
+ description = "This parameter specifies whether to pass the Mesos --docker_config option to Mesos."
 }
 
 variable "state" {
