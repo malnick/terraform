@@ -635,7 +635,7 @@ resource "aws_instance" "bootstrap" {
     dcos-type  = "${dcos-type}"
     dcos_version = "${dcos-version}"
     role = "dcos-bootstrap"
-    user = "${var.user}
+    user = "${var.user}"
     custom_dcos_bootstrap_port = "${var.custom_dcos_bootstrap_port}"
     custom_dcos_download_path = "${coalesce(var.custom_dcos_download_path, var.${dcos-type}_download_path[${dcos-version}])}"
     dcos_agent_list = "${aws_instance.agent.*.private_ip}" 
